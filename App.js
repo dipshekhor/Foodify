@@ -24,6 +24,7 @@ import RegisterScreen from './src/screens/RegisterScreen';
 import HomeScreen         from './src/screens/HomeScreen';
 import ManualSearchScreen from './src/screens/ManualSearchScreen';
 import ResultScreen       from './src/screens/ResultScreen';
+import PhotoScreen        from './src/screens/PhotoScreen';
 
 // Uncomment each screen as you build it in Parts 2–5:
 // import ManualSearchScreen from './src/screens/ManualSearchScreen';
@@ -101,6 +102,7 @@ export default function App() {
         />
         <Stack.Screen name="ManualSearch" component={ManualSearchScreen} />
         <Stack.Screen name="Result"       component={ResultScreen} />
+        <Stack.Screen name="Photo"        component={PhotoScreen} />
 
         {/* App screens — uncomment as you build them */}
         {/*

@@ -10,7 +10,7 @@
 import axios from 'axios';
 
 // !! CHANGE THIS to your laptop IP !!
-export const API_BASE_URL = 'http://192.168.0.105:8000';
+export const API_BASE_URL = 'http://192.168.0.102:8000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -106,6 +106,25 @@ export const checkFoodByImagePrediction = async (userId, foodLabel, confidence) 
     food_label: foodLabel,
     confidence,
   });
+  return res.data;
+};
+
+// Photo -> local teammate image model endpoint
+// Returns: { food_label, confidence, raw_food_label }
+export const predictFoodFromPhoto = async (imageUri) => {
+  const formData = new FormData();
+  formData.append('file', {
+    uri: imageUri,
+    type: 'image/jpeg',
+    name: 'food.jpg',
+  });
+
+  const res = await axios.post(
+    `${API_BASE_URL}/api/image-model/predict`,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 }
+  );
+
   return res.data;
 };
 
