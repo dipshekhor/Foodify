@@ -16,6 +16,7 @@ import { NavigationContainer }        from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { COLORS }                    from './src/theme/index';
+import { ThemeProvider }             from './src/context/ThemeContext';
 import { loadSession, clearSession } from './src/storage/userStorage';
 import { verifyToken }               from './src/api/index';
 
@@ -25,6 +26,7 @@ import HomeScreen         from './src/screens/HomeScreen';
 import ManualSearchScreen from './src/screens/ManualSearchScreen';
 import ResultScreen       from './src/screens/ResultScreen';
 import PhotoScreen        from './src/screens/PhotoScreen';
+import ProfileScreen      from './src/screens/ProfileScreen';
 
 // Uncomment each screen as you build it in Parts 2–5:
 // import ManualSearchScreen from './src/screens/ManualSearchScreen';
@@ -86,6 +88,7 @@ export default function App() {
   }
 
   return (
+    <ThemeProvider>
     <NavigationContainer>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.navy} />
       <Stack.Navigator
@@ -103,6 +106,7 @@ export default function App() {
         <Stack.Screen name="ManualSearch" component={ManualSearchScreen} />
         <Stack.Screen name="Result"       component={ResultScreen} />
         <Stack.Screen name="Photo"        component={PhotoScreen} />
+        <Stack.Screen name="Profile"      component={ProfileScreen} />
 
         {/* App screens — uncomment as you build them */}
         {/*
@@ -114,5 +118,6 @@ export default function App() {
         */}
       </Stack.Navigator>
     </NavigationContainer>
+    </ThemeProvider>
   );
 }

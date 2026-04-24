@@ -10,7 +10,7 @@
 import axios from 'axios';
 
 // !! CHANGE THIS to your laptop IP !!
-export const API_BASE_URL = 'http://192.168.0.102:8000';
+export const API_BASE_URL = 'http://192.168.0.103:8000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

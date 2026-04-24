@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FoodSafe — Light Mode Palette Demo</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f1117;
+    color: #f1f5f9;
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 800;
+    color: #00D4FF;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #64748b;
+    font-size: 14px;
+    margin-bottom: 48px;
+  }
+
+  /* Tab switcher */
+  .tabs {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+  .tab {
+    padding: 10px 28px;
+    border-radius: 999px;
+    border: 2px solid #2a3060;
+    background: #131736;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .tab:hover { border-color: #00D4FF44; color: #00D4FF; }
+  .tab.active { background: #00D4FF; border-color: #00D4FF; color: #0a0e27; }
+
+  /* Also show dark tab */
+  .tab.dark-tab { border-color: #334155; }
+  .tab.dark-tab.active { background: #1e2348; border-color: #00D4FF; color: #00D4FF; }
+
+  /* Panels */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Compare grid */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* Phone frame */
+  .phone-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .phone-label {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .phone-sublabel {
+    font-size: 12px;
+    color: #475569;
+    margin-top: 2px;
+    text-align: center;
+  }
+  .phone {
+    width: 320px;
+    border-radius: 36px;
+    overflow: hidden;
+    border: 8px solid #1e2348;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px #2a3060;
+    position: relative;
+  }
+  .phone-screen {
+    width: 100%;
+    padding: 20px 16px 28px;
+    min-height: 620px;
+  }
+
+  /* ── DARK MODE ────────────────────────────────────────────────────── */
+  .dark { background: linear-gradient(180deg, #0A0E27 0%, #0D1233 50%, #0A0E27 100%); }
+
+  /* ── PALETTE A — Pearl White ─────────────────────────────────────── */
+  .pearl { background: linear-gradient(180deg, #F8FAFF 0%, #F0F5FF 50%, #F8FAFF 100%); }
+
+  /* ── PALETTE B — Sky Mist ────────────────────────────────────────── */
+  .sky { background: linear-gradient(180deg, #F0F4F8 0%, #E8EDF5 50%, #F0F4F8 100%); }
+
+  /* ── PALETTE C — Warm Ivory ──────────────────────────────────────── */
+  .ivory { background: linear-gradient(180deg, #FDFAF3 0%, #FAF5E8 50%, #FDFAF3 100%); }
+
+  /* ─── Shared component styles ─────────────────────────────────────── */
+
+  /* Status bar notch */
+  .notch {
+    width: 120px; height: 28px;
+    background: #0A0E27;
+    border-radius: 0 0 20px 20px;
+    margin: 0 auto 12px;
+  }
+  .pearl .notch, .sky .notch, .ivory .notch { background: rgba(0,0,0,0.08); }
+
+  /* Header */
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .logo-row { display: flex; align-items: center; gap: 8px; }
+  .logo-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: #00D4FF22;
+    border: 1px solid #00D4FF40;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .app-name { font-size: 16px; font-weight: 800; color: #00D4FF; letter-spacing: 1px; }
+  .logout-btn {
+    width: 32px; height: 32px;
+    border-radius: 999px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    background: transparent;
+  }
+
+  /* Pearl overrides */
+  .pearl .app-name { color: #0099CC; }
+  .pearl .logo-icon { background: #0099CC15; border-color: #0099CC40; }
+
+  /* Sky overrides */
+  .sky .app-name { color: #0EA5E9; }
+  .sky .logo-icon { background: #0EA5E915; border-color: #0EA5E940; }
+
+  /* Ivory overrides */
+  .ivory .app-name { color: #00A8C6; }
+  .ivory .logo-icon { background: #00A8C615; border-color: #00A8C640; }
+
+  /* Greeting */
+  .greeting { margin-bottom: 14px; }
+  .greeting-name { font-size: 18px; font-weight: 800; color: #F1F5F9; margin-bottom: 2px; }
+  .greeting-sub  { font-size: 12px; color: #94A3B8; }
+
+  .pearl .greeting-name { color: #0A0E27; }
+  .pearl .greeting-sub  { color: #64748B; }
+  .sky   .greeting-name { color: #0F172A; }
+  .sky   .greeting-sub  { color: #64748B; }
+  .ivory .greeting-name { color: #1A1E3A; }
+  .ivory .greeting-sub  { color: #6B6F88; }
+
+  /* Profile card */
+  .profile-card {
+    background: #131736;
+    border-radius: 16px;
+    padding: 14px;
+    border: 1px solid #2A3060;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 16px rgba(0,212,255,0.08);
+  }
+  .pearl  .profile-card { background: #FFFFFF; border-color: #E2E8F0; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .sky    .profile-card { background: #FFFFFF; border-color: #CBD5E1; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .ivory  .profile-card { background: #FFFFFF; border-color: #E8DFC8; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+
+  .profile-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .avatar {
+    width: 40px; height: 40px;
+    border-radius: 999px;
+    background: #00D4FF22;
+    border: 2px solid #00D4FF60;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 800; color: #00D4FF;
+    flex-shrink: 0;
+  }
+  .pearl  .avatar { background: #0099CC22; border-color: #0099CC60; color: #0099CC; }
+  .sky    .avatar { background: #0EA5E922; border-color: #0EA5E960; color: #0EA5E9; }
+  .ivory  .avatar { background: #00A8C622; border-color: #00A8C660; color: #00A8C6; }
+
+  .profile-info { flex: 1; }
+  .profile-name-text { font-size: 14px; font-weight: 700; color: #F1F5F9; }
+  .profile-email-text { font-size: 11px; color: #475569; margin-top: 1px; }
+
+  .pearl  .profile-name-text { color: #0A0E27; }
+  .pearl  .profile-email-text { color: #64748B; }
+  .sky    .profile-name-text { color: #0F172A; }
+  .sky    .profile-email-text { color: #64748B; }
+  .ivory  .profile-name-text { color: #1A1E3A; }
+  .ivory  .profile-email-text { color: #6B6F88; }
+
+  .icon-btn {
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: #00D4FF;
+  }
+  .pearl  .icon-btn { color: #0099CC; }
+  .sky    .icon-btn { color: #0EA5E9; }
+  .ivory  .icon-btn { color: #00A8C6; }
+
+  /* Condition tags */
+  .tags-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .disease-tag {
+    display: flex; align-items: center; gap: 4px;
+    background: #F59E0B20; border: 1px solid #F59E0B50;
+    border-radius: 999px; padding: 3px 9px;
+    font-size: 10px; font-weight: 600; color: #F59E0B;
+  }
+  .allergy-tag {
+    display: flex; align-items: center; gap: 4px;
+    background: #EF444420; border: 1px solid #EF444450;
+    border-radius: 999px; padding: 3px 9px;
+    font-size: 10px; font-weight: 600; color: #EF4444;
+  }
+
+  /* Section label */
+  .section-label {
+    font-size: 11px; font-weight: 600; color: #475569;
+    letter-spacing: 0.8px; text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  /* Mode buttons grid */
+  .mode-grid { display: flex; gap: 8px; margin-bottom: 16px; }
+  .mode-btn {
+    flex: 1;
+    border-radius: 14px;
+    padding: 12px 6px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    min-height: 90px; justify-content: center;
+    border: none; cursor: pointer;
+  }
+  .mode-btn-cyan { background: linear-gradient(135deg, #00D4FF, #00A8CC); }
+  .mode-btn-purple { background: linear-gradient(135deg, #7C3AED, #5B21B6); }
+  .mode-btn-orange { background: linear-gradient(135deg, #EA580C, #C2410C); }
+
+  .pearl  .mode-btn-cyan { background: linear-gradient(135deg, #0099CC, #007AA3); }
+  .sky    .mode-btn-cyan { background: linear-gradient(135deg, #0EA5E9, #0284C7); }
+  .ivory  .mode-btn-cyan { background: linear-gradient(135deg, #00A8C6, #007A94); }
+
+  .mode-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.18);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .mode-label { font-size: 11px; font-weight: 700; color: #fff; text-align: center; }
+  .mode-sub   { font-size: 9px;  color: rgba(255,255,255,0.75); text-align: center; }
+
+  /* History items */
+  .history-item {
+    display: flex; align-items: center; gap: 10px;
+    background: #131736;
+    border-radius: 10px;
+    border: 1px solid #2A3060;
+    padding: 10px 10px 10px 0;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .pearl  .history-item { background: #FFFFFF; border-color: #E2E8F0; }
+  .sky    .history-item { background: #FFFFFF; border-color: #CBD5E1; }
+  .ivory  .history-item { background: #FFFFFF; border-color: #E8DFC8; }
+
+  .verdict-bar { width: 4px; align-self: stretch; border-radius: 2px; min-height: 40px; flex-shrink: 0; }
+  .hist-food { font-size: 13px; font-weight: 600; color: #F1F5F9; margin-bottom: 2px; }
+  .hist-meta { font-size: 10px; color: #475569; }
+  .pearl  .hist-food { color: #0A0E27; }
+  .sky    .hist-food { color: #0F172A; }
+  .ivory  .hist-food { color: #1A1E3A; }
+
+  .hist-info { flex: 1; }
+  .score-badge {
+    width: 32px; height: 32px;
+    border-radius: 999px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800;
+    flex-shrink: 0;
+  }
+  .verdict-text { font-size: 9px; font-weight: 700; width: 38px; text-align: right; flex-shrink: 0; }
+
+  /* Safe/Caution/Avoid */
+  .safe-color   { color: #10B981; }
+  .caution-color { color: #F59E0B; }
+  .avoid-color  { color: #EF4444; }
+  .safe-bg      { background: #10B98122; }
+  .caution-bg   { background: #F59E0B22; }
+  .avoid-bg     { background: #EF444422; }
+
+  /* ── Color Swatches Panel ─────────────────────────────────────────── */
+  .swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .swatch-card {
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid #1e2348;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  .swatch-card-header {
+    padding: 20px 20px 16px;
+    font-size: 15px; font-weight: 800; letter-spacing: 0.5px;
+  }
+  .swatch-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .swatch {
+    height: 56px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-end;
+    padding-bottom: 5px;
+    font-size: 8px; font-weight: 700; letter-spacing: 0.3px;
+    color: transparent;
+    cursor: default;
+    transition: height 0.2s;
+    position: relative;
+  }
+  .swatch:hover { height: 72px; }
+  .swatch span {
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    padding: 1px 4px;
+    border-radius: 4px;
+    font-size: 8px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+  }
+  .swatch:hover span { opacity: 1; }
+
+  .swatch-labels {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    padding: 6px 0 16px;
+  }
+  .swatch-label {
+    text-align: center;
+    font-size: 9px;
+    color: #64748b;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+
+  /* A Pearl White swatches */
+  .a-bg      { background: #F8FAFF; }
+  .a-card    { background: #FFFFFF; border: 1px solid #eee; }
+  .a-elev    { background: #EFF4FF; }
+  .a-border  { background: #E2E8F0; }
+  .a-accent  { background: #0099CC; }
+  .a-acc2    { background: #007AA3; }
+  .a-tp      { background: #0A0E27; }
+  .a-ts      { background: #334155; }
+  .a-tt      { background: #64748B; }
+  .a-input   { background: #F1F5FF; border: 1px solid #E2E8F0; }
+
+  /* B Sky Mist swatches */
+  .b-bg      { background: #F0F4F8; }
+  .b-card    { background: #FFFFFF; border: 1px solid #eee; }
+  .b-elev    { background: #E8EDF5; }
+  .b-border  { background: #CBD5E1; }
+  .b-accent  { background: #0EA5E9; }
+  .b-acc2    { background: #0284C7; }
+  .b-tp      { background: #0F172A; }
+  .b-ts      { background: #475569; }
+  .b-tt      { background: #94A3B8; }
+  .b-input   { background: #FFFFFF; border: 1px solid #CBD5E1; }
+
+  /* C Warm Ivory swatches */
+  .c-bg      { background: #FDFAF3; }
+  .c-card    { background: #FFFFFF; border: 1px solid #eee; }
+  .c-elev    { background: #FDF6E3; }
+  .c-border  { background: #E8DFC8; }
+  .c-accent  { background: #00A8C6; }
+  .c-acc2    { background: #007A94; }
+  .c-tp      { background: #1A1E3A; }
+  .c-ts      { background: #4A506A; }
+  .c-tt      { background: #8A90A8; }
+  .c-input   { background: #FFF9EE; border: 1px solid #E8DFC8; }
+
+  /* Dark swatches */
+  .d-bg     { background: #0A0E27; }
+  .d-card   { background: #131736; }
+  .d-elev   { background: #1E2348; }
+  .d-border { background: #2A3060; }
+  .d-accent { background: #00D4FF; }
+  .d-acc2   { background: #00A8CC; }
+  .d-tp     { background: #F1F5F9; }
+  .d-ts     { background: #94A3B8; }
+  .d-tt     { background: #475569; }
+  .d-input  { background: #1E2348; border: 1px solid #2A3060; }
+
+  /* Section divider */
+  .divider {
+    border: none; border-top: 1px solid #1e2348;
+    margin: 40px 0;
+  }
+  .section-title {
+    text-align: center;
+    font-size: 14px; font-weight: 700;
+    color: #475569;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+
+  /* Result card (shown in result panel) */
+  .result-card {
+    border-radius: 16px;
+    padding: 14px;
+    border-width: 1px;
+    border-style: solid;
+    margin-bottom: 12px;
+  }
+  .result-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .result-icon {
+    width: 44px; height: 44px;
+    border-radius: 999px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .result-verdict { font-size: 12px; font-weight: 800; letter-spacing: 1px; }
+  .result-food    { font-size: 18px; font-weight: 800; }
+  .result-msg     { font-size: 12px; margin-top: 4px; }
+
+  .dark-result { background: #0A0E27; }
+
+  /* Nutrient row */
+  .nutrient-row {
+    display: flex; gap: 8px; margin-bottom: 12px;
+  }
+  .nutrient-pill {
+    flex: 1;
+    background: #1e2348;
+    border-radius: 10px;
+    padding: 8px 6px;
+    text-align: center;
+    border: 1px solid #2A3060;
+  }
+  .nutrient-val  { font-size: 14px; font-weight: 800; color: #F1F5F9; }
+  .nutrient-name { font-size: 9px; color: #475569; margin-top: 2px; }
+
+  .pearl .nutrient-pill { background: #F0F5FF; border-color: #E2E8F0; }
+  .pearl .nutrient-val  { color: #0A0E27; }
+  .sky   .nutrient-pill { background: #E8EDF5; border-color: #CBD5E1; }
+  .sky   .nutrient-val  { color: #0F172A; }
+  .ivory .nutrient-pill { background: #FDF6E3; border-color: #E8DFC8; }
+  .ivory .nutrient-val  { color: #1A1E3A; }
+
+  /* Warning tag */
+  .warning-tag {
+    background: #EF444418;
+    border: 1px solid #EF444440;
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex; align-items: flex-start; gap: 6px;
+    margin-bottom: 8px;
+  }
+  .warning-tag-text { font-size: 11px; color: #EF4444; }
+
+  /* Profile edit card */
+  .edit-input {
+    background: #1e2348;
+    border: 1px solid #2A3060;
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 8px;
+  }
+  .edit-input-icon { font-size: 14px; color: #00D4FF; }
+  .edit-input-text { font-size: 13px; color: #F1F5F9; }
+  .edit-input-placeholder { font-size: 13px; color: #475569; }
+
+  .pearl .edit-input { background: #F1F5FF; border-color: #E2E8F0; }
+  .pearl .edit-input-icon { color: #0099CC; }
+  .pearl .edit-input-text { color: #0A0E27; }
+  .sky   .edit-input { background: #FFFFFF; border-color: #CBD5E1; }
+  .sky   .edit-input-icon { color: #0EA5E9; }
+  .sky   .edit-input-text { color: #0F172A; }
+  .ivory .edit-input { background: #FFF9EE; border-color: #E8DFC8; }
+  .ivory .edit-input-icon { color: #00A8C6; }
+  .ivory .edit-input-text { color: #1A1E3A; }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .chip-item {
+    padding: 5px 12px; border-radius: 999px;
+    font-size: 11px; font-weight: 600;
+    border: 1.5px solid #2A3060;
+    background: #1e2348; color: #94A3B8;
+  }
+  .chip-item.active-chip {
+    background: #00D4FF; border-color: #00D4FF; color: #0A0E27;
+  }
+  .chip-item.avoid-chip {
+    background: #EF4444; border-color: #EF4444; color: #fff;
+  }
+
+  .pearl .chip-item { border-color: #E2E8F0; background: #EFF4FF; color: #64748B; }
+  .pearl .chip-item.active-chip { background: #0099CC; border-color: #0099CC; color: #fff; }
+  .sky   .chip-item { border-color: #CBD5E1; background: #E8EDF5; color: #64748B; }
+  .sky   .chip-item.active-chip { background: #0EA5E9; border-color: #0EA5E9; color: #fff; }
+  .ivory .chip-item { border-color: #E8DFC8; background: #FDF6E3; color: #6B6F88; }
+  .ivory .chip-item.active-chip { background: #00A8C6; border-color: #00A8C6; color: #fff; }
+
+  .save-btn {
+    border-radius: 10px;
+    padding: 13px;
+    text-align: center;
+    font-size: 14px; font-weight: 700;
+    color: #0A0E27;
+    margin-top: 4px;
+  }
+  .dark .save-btn   { background: linear-gradient(90deg, #00D4FF, #0099CC); }
+  .pearl .save-btn  { background: linear-gradient(90deg, #0099CC, #007AA3); color: #fff; }
+  .sky   .save-btn  { background: linear-gradient(90deg, #0EA5E9, #0284C7); color: #fff; }
+  .ivory .save-btn  { background: linear-gradient(90deg, #00A8C6, #007A94); color: #fff; }
+
+  /* Badge */
+  .new-badge {
+    display: inline-block;
+    background: #10B98120;
+    border: 1px solid #10B98150;
+    color: #10B981;
+    font-size: 9px; font-weight: 700;
+    padding: 2px 7px; border-radius: 999px;
+    letter-spacing: 0.5px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  /* Scroll view indicator */
+  .scroll-indicator {
+    display: flex; gap: 4px; justify-content: center; margin-top: 8px;
+  }
+  .dot { width: 6px; height: 6px; border-radius: 999px; background: #2A3060; }
+  .dot.active { background: #00D4FF; width: 18px; }
+  .pearl .dot { background: #E2E8F0; }
+  .pearl .dot.active { background: #0099CC; }
+  .sky   .dot { background: #CBD5E1; }
+  .sky   .dot.active { background: #0EA5E9; }
+  .ivory .dot { background: #E8DFC8; }
+  .ivory .dot.active { background: #00A8C6; }
+
+  /* Footer note */
+  .footer-note {
+    text-align: center;
+    color: #334155;
+    font-size: 12px;
+    margin-top: 48px;
+  }
+  .footer-note span { color: #00D4FF; }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    .compare-grid { grid-template-columns: 1fr; }
+    .phone { width: 100%; max-width: 320px; }
+    h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>🍽 FoodSafe — Palette Demo</h1>
+<p class="subtitle">Compare Dark Mode vs. three light mode options across Home, Result, and Profile screens</p>
+
+<!-- Tab switcher -->
+<div class="tabs">
+  <button class="tab dark-tab active" onclick="showPanel('home')">🏠 Home Screen</button>
+  <button class="tab" onclick="showPanel('result')">✅ Result Screen</button>
+  <button class="tab" onclick="showPanel('profile')">✏️ Edit Profile</button>
+  <button class="tab" onclick="showPanel('swatches')">🎨 Color Swatches</button>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- HOME SCREEN PANEL -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="panel active" id="panel-home">
+  <div class="compare-grid">
+
+    <!-- DARK -->
+    <div class="phone-wrap">
+      <div>
+        <div class="phone-label" style="color:#00D4FF;text-align:center">Current — Dark Mode</div>
+        <div class="phone-sublabel">Navy #0A0E27 · Cyan #00D4FF</div>
+      </div>
+      <div class="phone"><div class="phone-screen dark">
+        <div class="notch"></div>
+        <div class="app-header">
+          <div class="logo-row">
+            <div class="logo-icon">🥗</div>
+            <span class="app-name">FoodSafe</span>
+          </div>
+          <div class="logout-btn" style="color:#475569;font-size:18px">↩</div>
+        </div>
+        <div class="greeting">
+          <div class="greeting-name">Hello, Ahmed 👋</div>
+          <div class="greeting-sub">What would you like to check today?</div>
+        </div>
+        <div class="profile-card dark">
+          <div class="profile-card-header">
+            <div class="avatar">A</div>
+            <div class="profile-info">
+              <div class="profile-name-text">Ahmed Rahman</div>
+              <div class="profile-email-text">ahmed@example.com</div>
+            </div>
+            <div class="icon-btn">✏️</div>
+            <div class="icon-btn">🕐</div>
+          </div>
+          <div class="tags-row">
+            <span class="disease-tag">⚕ Diabetes</span>
+            <span class="disease-tag">⚕ Hypertension</span>
+            <span class="allergy-tag">⚠ Nut Allergy</span>
+          </div>
+        </div>
+        <div class="section-label">CHECK YOUR FOOD</div>
+        <div class="mode-grid">
+          <button class="mode-btn mode-btn-cyan">
+            <div class="mode-icon">🔍</div>
+            <div class="mode-label">Search Food</div>
+            <div class="mode-sub">Type a food name</div>
+          </button>
+          <button class="mode-btn mode-btn-purple">
+            <div class="mode-icon">📷</div>
+            <div class="mode-label">Scan Label</div>
+            <div class="mode-sub">Photo of pack</div>
+          </button>
+          <button class="mode-btn mode-btn-orange">
+            <div class="mode-icon">📸</div>
+            <div class="mode-label">Food Photo</div>
+            <div class="mode-sub">Take a picture</div>
+          </button>
+        </div>
+        <div class="section-label">RECENT CHECKS</div>
+        <div class="history-item dark">
+          <div class="verdict-bar" style="background:#10B981"></div>
+          <div class="hist-info">
+            <div class="hist-food">Brown Rice</div>
+            <div class="hist-meta">MANUAL · Apr 23, 10:30 AM</div>
+          </div>
+          <div class="score-badge safe-bg"><span class="safe-color" style="font-size:11px;font-weight:800">82</span></div>
+          <div class="verdict-text safe-color">SAFE</div>
+        </div>
+        <div class="history-item dark">
+          <div class="verdict-bar" style="background:#F59E0B"></div>
+          <div class="hist-info">
+            <div class="hist-food">White Bread</div>
+            <div class="hist-meta">PHOTO · Apr 22, 7:15 PM</div>
+          </div>
+          <div class="score-badge caution-bg"><span class="caution-color" style="font-size:11px;font-weight:800">51</span></div>
+          <div class="verdict-text caution-color">CAUTION</div>
+        </div>
+        <div class="scroll-indicator"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+      </div></div>
+    </div>
+
+    <!-- PALETTE A -->
+    <div class="phone-wrap">
+      <div>
+        <div class="phone-label" style="color:#0099CC;text-align:center">A — Pearl White</div>
+        <div class="phone-sublabel">BG #F8FAFF · Accent #0099CC</div>
+      </div>
+      <div class="phone"><div class="phone-screen pearl">
+        <div class="notch"></div>
+        <div class="app-header">
+          <div class="logo-row">
+            <div class="logo-icon">🥗</div>
+            <span class="app-name">FoodSafe</span>
+          </div>
+          <div class="logout-btn" style="color:#94A3B8;font-size:18px">↩</div>
+        </div>
+        <div class="greeting">
+          <div class="greeting-name">Hello, Ahmed 👋</div>
+          <div class="greeting-sub">What would you like to check today?</div>
+        </div>
+        <div class="profile-card pearl">
+          <div class="profile-card-header">
+            <div class="avatar">A</div>
+            <div class="profile-info">
+              <div class="profile-name-text">Ahmed Rahman</div>
+              <div class="profile-email-text">ahmed@example.com</div>
+            </div>
+            <div class="icon-btn">✏️</div>
+            <div class="icon-btn">🕐</div>
+          </div>
+          <div class="tags-row">
+            <span class="disease-tag">⚕ Diabetes</span>
+            <span class="disease-tag">⚕ Hypertension</span>
+            <span class="allergy-tag">⚠ Nut Allergy</span>
+          </div>
+        </div>
+        <div class="section-label">CHECK YOUR FOOD</div>
+        <div class="mode-grid">
+          <button class="mode-btn mode-btn-cyan">
+            <div class="mode-icon">🔍</div>
+            <div class="mode-label">Search Food</div>
+            <div class="mode-sub">Type a food name</div>
+          </button>
+          <button class="mode-btn mode-btn-purple">
+            <div class="mode-icon">📷</div>
+            <div class="mode-label">Scan Label</div>
+            <div class="mode-sub">Photo of pack</div>
+          </button>
+          <button class="mode-btn mode-btn-orange">
+            <div class="mode-icon">📸</div>
+            <div class="mode-label">Food Photo</div>
+            <div class="mode-sub">Take a picture</div>
+          </button>
+        </div>
+        <div class="section-label">RECENT CHECKS</div>
+        <div class="history-item pearl">
+          <div class="verdict-bar" style="background:#10B981"></div>
+          <div class="hist-info">
+            <div class="hist-food">Brown Rice</div>
+            <div class="hist-meta">MANUAL · Apr 23, 10:30 AM</div>
+          </div>
+          <div class="score-badge safe-bg"><span class="safe-color" style="font-size:11px;font-weight:800">82</span></div>
+          <div class="verdict-text safe-color">SAFE</div>
+        </div>
+        <div class="history-item pearl">
+          <div class="verdict-bar" style="background:#F59E0B"></div>
+          <div class="hist-info">
+            <div class="hist-food">White Bread</div>
+            <div class="hist-meta">PHOTO · Apr 22, 7:15 PM</div>
+          </div>
+          <div class="score-badge caution-bg"><span class="caution-color" style="font-size:11px;font-weight:800">51</span></div>
+          <div class="verdict-text caution-color">CAUTION</div>
+        </div>
+        <div class="scroll-indicator pearl"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+      </div></div>
+    </div>
+
+    <!-- PALETTE B -->
+    <div class="phone-wrap">
+      <div>
+        <div class="phone-label" style="color:#0EA5E9;text-align:center">B — Sky Mist</div>
+        <div class="phone-sublabel">BG #F0F4F8 · Accent #0EA5E9</div>
+      </div>
+      <div class="phone"><div class="phone-screen sky">
+        <div class="notch"></div>
+        <div class="app-header">
+          <div class="logo-row">
+            <div class="logo-icon">🥗</div>
+            <span class="app-name">FoodSafe</span>
+          </div>
+          <div class="logout-btn" style="color:#94A3B8;font-size:18px">↩</div>
+        </div>
+        <div class="greeting">
+          <div class="greeting-name">Hello, Ahmed 👋</div>
+          <div class="greeting-sub">What would you like to check today?</div>
+        </div>
+        <div class="profile-card sky">
+          <div class="profile-card-header">
+            <div class="avatar">A</div>
+            <div class="profile-info">
+              <div class="profile-name-text">Ahmed Rahman</div>
+              <div class="profile-email-text">ahmed@example.com</div>
+            </div>
+            <div class="icon-btn">✏️</div>
+            <div class="icon-btn">🕐</div>
+          </div>
+          <div class="tags-row">
+            <span class="disease-tag">⚕ Diabetes</span>
+            <span class="disease-tag">⚕ Hypertension</span>
+            <span class="allergy-tag">⚠ Nut Allergy</span>
+          </div>
+        </div>
+        <div class="section-label">CHECK YOUR FOOD</div>
+        <div class="mode-grid">
+          <button class="mode-btn mode-btn-cyan">
+            <div class="mode-icon">🔍</div>
+            <div class="mode-label">Search Food</div>
+            <div class="mode-sub">Type a food name</div>
+          </button>
+          <button class="mode-btn mode-btn-purple">
+            <div class="mode-icon">📷</div>
+            <div class="mode-label">Scan Label</div>
+            <div class="mode-sub">Photo of pack</div>
+          </button>
+          <button class="mode-btn mode-btn-orange">
+            <div class="mode-icon">📸</div>
+            <div class="mode-label">Food Photo</div>
+            <div class="mode-sub">Take a picture</div>
+          </button>
+        </div>
+        <div class="section-label">RECENT CHECKS</div>
+        <div class="history-item sky">
+          <div class="verdict-bar" style="background:#10B981"></div>
+          <div class="hist-info">
+            <div class="hist-food">Brown Rice</div>
+            <div class="hist-meta">MANUAL · Apr 23, 10:30 AM</div>
+          </div>
+          <div class="score-badge safe-bg"><span class="safe-color" style="font-size:11px;font-weight:800">82</span></div>
+          <div class="verdict-text safe-color">SAFE</div>
+        </div>
+        <div class="history-item sky">
+          <div class="verdict-bar" style="background:#F59E0B"></div>
+          <div class="hist-info">
+            <div class="hist-food">White Bread</div>
+            <div class="hist-meta">PHOTO · Apr 22, 7:15 PM</div>
+          </div>
+          <div class="score-badge caution-bg"><span class="caution-color" style="font-size:11px;font-weight:800">51</span></div>
+          <div class="verdict-text caution-color">CAUTION</div>
+        </div>
+        <div class="scroll-indicator sky"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+      </div></div>
+    </div>
+
+    <!-- PALETTE C -->
+    <div class="phone-wrap">
+      <div>
+        <div class="phone-label" style="color:#00A8C6;text-align:center">C — Warm Ivory</div>
+        <div class="phone-sublabel">BG #FDFAF3 · Accent #00A8C6</div>
+      </div>
+      <div class="phone"><div class="phone-screen ivory">
+        <div class="notch"></div>
+        <div class="app-header">
+          <div class="logo-row">
+            <div class="logo-icon">🥗</div>
+            <span class="app-name">FoodSafe</span>
+          </div>
+          <div class="logout-btn" style="color:#94A3B8;font-size:18px">↩</div>
+        </div>
+        <div class="greeting">
+          <div class="greeting-name">Hello, Ahmed 👋</div>
+          <div class="greeting-sub">What would you like to check today?</div>
+        </div>
+        <div class="profile-card ivory">
+          <div class="profile-card-header">
+            <div class="avatar">A</div>
+            <div class="profile-info">
+              <div class="profile-name-text">Ahmed Rahman</div>
+              <div class="profile-email-text">ahmed@example.com</div>
+            </div>
+            <div class="icon-btn">✏️</div>
+            <div class="icon-btn">🕐</div>
+          </div>
+          <div class="tags-row">
+            <span class="disease-tag">⚕ Diabetes</span>
+            <span class="disease-tag">⚕ Hypertension</span>
+            <span class="allergy-tag">⚠ Nut Allergy</span>
+          </div>
+        </div>
+        <div class="section-label">CHECK YOUR FOOD</div>
+        <div class="mode-grid">
+          <button class="mode-btn mode-btn-cyan">
+            <div class="mode-icon">🔍</div>
+            <div class="mode-label">Search Food</div>
+            <div class="mode-sub">Type a food name</div>
+          </button>
+          <button class="mode-btn mode-btn-purple">
+            <div class="mode-icon">📷</div>
+            <div class="mode-label">Scan Label</div>
+            <div class="mode-sub">Photo of pack</div>
+          </button>
+          <button class="mode-btn mode-btn-orange">
+            <div class="mode-icon">📸</div>
+            <div class="mode-label">Food Photo</div>
+            <div class="mode-sub">Take a picture</div>
+          </button>
+        </div>
+        <div class="section-label">RECENT CHECKS</div>
+        <div class="history-item ivory">
+          <div class="verdict-bar" style="background:#10B981"></div>
+          <div class="hist-info">
+            <div class="hist-food">Brown Rice</div>
+            <div class="hist-meta">MANUAL · Apr 23, 10:30 AM</div>
+          </div>
+          <div class="score-badge safe-bg"><span class="safe-color" style="font-size:11px;font-weight:800">82</span></div>
+          <div class="verdict-text safe-color">SAFE</div>
+        </div>
+        <div class="history-item ivory">
+          <div class="verdict-bar" style="background:#F59E0B"></div>
+          <div class="hist-info">
+            <div class="hist-food">White Bread</div>
+            <div class="hist-meta">PHOTO · Apr 22, 7:15 PM</div>
+          </div>
+          <div class="score-badge caution-bg"><span class="caution-color" style="font-size:11px;font-weight:800">51</span></div>
+          <div class="verdict-text caution-color">CAUTION</div>
+        </div>
+        <div class="scroll-indicator ivory"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+      </div></div>
+    </div>
+
+  </div><!-- /compare-grid -->
+</div><!-- /panel-home -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- RESULT SCREEN PANEL -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-result">
+  <div class="compare-grid">
+
+    <!-- DARK -->
+    <div class="phone-wrap">
+      <div><div class="phone-label" style="color:#00D4FF;text-align:center">Current — Dark</div><div class="phone-sublabel">Result Screen</div></div>
+      <div class="phone"><div class="phone-screen dark" style="padding-top:16px">
+        <div class="notch"></div>
+        <!-- Result verdict -->
+        <div style="background:#10B98118;border:1px solid #10B98150;border-radius:16px;padding:14px;margin-bottom:12px">
+          <div class="result-header">
+            <div class="result-icon" style="background:#10B98130">✅</div>
+            <div>
+              <div class="result-verdict safe-color">SAFE TO EAT</div>
+              <div class="result-food" style="color:#F1F5F9">Brown Rice</div>
+              <div class="result-msg" style="color:#94A3B8">Suitable for your conditions</div>
+            </div>
+          </div>
+          <div style="text-align:center;font-size:36px;font-weight:900;color:#10B981;margin:8px 0">82</div>
+          <div style="text-align:center;font-size:10px;color:#94A3B8">SAFETY SCORE</div>
+        </div>
+        <!-- Nutrients -->
+        <div style="font-size:11px;font-weight:700;color:#475569;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px">NUTRITION</div>
+        <div class="nutrient-row dark">
+          <div class="nutrient-pill dark"><div class="nutrient-val">216</div><div class="nutrient-name">Calories</div></div>
+          <div class="nutrient-pill dark"><div class="nutrient-val">45g</div><div class="nutrient-name">Carbs</div></div>
+          <div class="nutrient-pill dark"><div class="nutrient-val">4g</div><div class="nutrient-name">Protein</div></div>
+          <div class="nutrient-pill dark"><div class="nutrient-val">1g</div><div class="nutrient-name">Fat</div></div>
+        </div>
+        <!-- Warnings -->
+        <div style="font-size:11px;font-weight:700;color:#475569;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px">NOTES</div>
+        <div class="warning-tag">
+          <span>⚠️</span>
+          <span class="warning-tag-text">Monitor portion size — high in carbohydrates for diabetics</span>
+        </div>
+        <div style="background:#10B98118;border:1px solid #10B98140;border-radius:8px;padding:8px 10px;display:flex;align-items:flex-start;gap:6px">
+          <span>✅</span>
+          <span style="font-size:11px;color:#10B981">Low glycemic index — good for blood sugar control</span>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- PEARL A -->
+    <div class="phone-wrap">
+      <div><div class="phone-label" style="color:#0099CC;text-align:center">A — Pearl White</div><div class="phone-sublabel">Result Screen</div></div>
+      <div class="phone"><div class="phone-screen pearl" style="padding-top:16px">
+        <div class="notch"></div>
+        <div style="background:#10B98112;border:1px solid #10B98150;border-radius:16px;padding:14px;margin-bottom:12px">
+          <div class="result-header">
+            <div class="result-icon" style="background:#10B98125">✅</div>
+            <div>
+              <div class="result-verdict safe-color">SAFE TO EAT</div>
+              <div class="result-food" style="color:#0A0E27">Brown Rice</div>
+              <div class="result-msg" style="color:#64748B">Suitable for your conditions</div>
+            </div>
+          </div>
+          <div style="text-align:center;font-size:36px;font-weight:900;color:#10B981;margin:8px 0">82</div>
+          <div style="text-align:center;font-size:10px;color:#64748B">SAFETY SCORE</div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:#94A3B8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px">NUTRITION</div>
+        <div class="nutrient-row pearl">
+          <div class="nutrient-pill pearl"><div class="nutrient-val">216</div><div class="nutrient-name">Calories</div></div>
+          <div class="nutrient-pill pearl"><div class="nutrient-val">45g</div><div class="nutrient-name">Carbs</div></div>
+          <div class="nutrient-pill pearl"><div class="nutrient-val">4g</div><div class="nutrient-name">Protein</div></div>
+          <div class="nutrient-pill pearl"><div class="nutrient-val">1g</div><div class="nutrient-name">Fat</div></div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:#94A3B8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px">NOTES</div>
+        <div class="warning-tag"><span>⚠️</span><span class="warning-tag-text">Monitor portion size — high in carbohydrates for diabetics</span></div>
+        <div style="background:#10B98112;border:1px solid #10B98140;border-radius:8px;padding:8px 10px;display:flex;align-items:flex-start;gap:6px">
+          <span>✅</span><span style="font-size:11px;color:#10B981">Low glycemic index — good for blood sugar control</span>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- SKY B -->
+    <div class="phone-wrap">
+      <div><div class="phone-label" style="color:#0EA5E9;text-align:center">B — Sky Mist</div><div class="phone-sublabel">Result Screen</div></div>
+      <div class="phone"><div class="phone-screen sky" style="padding-top:16px">
+        <div class="notch"></div>
+        <div style="background:#10B98112;border:1px solid #10B98150;border-radius:16px;padding:14px;margin-bottom:12px">
+          <div class="result-header">
+            <div class="result-icon" style="background:#10B98125">✅</div>
+            <div>
+              <div class="result-verdict safe-color">SAFE TO EAT</div>
+              <div class="result-food" style="color:#0F172A">Brown Rice</div>
+              <div class="result-msg" style="color:#64748B">Suitable for your conditions</div>
+            </div>
+          </div>
+          <div style="text-align:center;font-size:36px;font-weight:900;color:#10B981;margin:8px 0">82</div>
+          <div style="text-align:center;font-size:10px;color:#64748B">SAFETY SCORE</div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:#94A3B8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px">NUTRITION</div>
+        <div class="nutrient-row sky">
+          <div class="nutrient-pill sky"><div class="nutrient-val">216</div><div class="nutrient-name">Calories</div></div>
+          <div class="nutrient-pill sky"><div class="nutrient-val">45g</div><div class="nutrient-name">Carbs</div></div>
+          <div class="nutrient-pill sky"><div class="nutrient-val">4g</div><div class="nutrient-name">Protein</div></div>
+          <div class="nutrient-pill sky"><div class="nutrient-val">1g</div><div class="nutrient-name">Fat</div></div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:#94A3B8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px">NOTES</div>
+        <div class="warning-tag"><span>⚠️</span><span class="warning-tag-text">Monitor portion size — high in carbohydrates for diabetics</span></div>
+        <div style="background:#10B98112;border:1px solid #10B98140;border-radius:8px;padding:8px 10px;display:flex;align-items:flex-start;gap:6px">
+          <span>✅</span><span style="font-size:11px;color:#10B981">Low glycemic index — good for blood sugar control</span>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- IVORY C -->
+    <div class="phone-wrap">
+      <div><div class="phone-label" style="color:#00A8C6;text-align:center">C — Warm Ivory</div><div class="phone-sublabel">Result Screen</div></div>
+      <div class="phone"><div class="phone-screen ivory" style="padding-top:16px">
+        <div class="notch"></div>
+        <div style="background:#10B98112;border:1px solid #10B98150;border-radius:16px;padding:14px;margin-bottom:12px">
+          <div class="result-header">
+            <div class="result-icon" style="background:#10B98125">✅</div>
+            <div>
+              <div class="result-verdict safe-color">SAFE TO EAT</div>
+              <div class="result-food" style="color:#1A1E3A">Brown Rice</div>
+              <div class="result-msg" style="color:#6B6F88">Suitable for your conditions</div>
+            </div>
+          </div>
+          <div style="text-align:center;font-size:36px;font-weight:900;color:#10B981;margin:8px 0">82</div>
+          <div style="text-align:center;font-size:10px;color:#6B6F88">SAFETY SCORE</div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:#8A90A8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px">NUTRITION</div>
+        <div class="nutrient-row ivory">
+          <div class="nutrient-pill ivory"><div class="nutrient-val">216</div><div class="nutrient-name">Calories</div></div>
+          <div class="nutrient-pill ivory"><div class="nutrient-val">45g</div><div class="nutrient-name">Carbs</div></div>
+          <div class="nutrient-pill ivory"><div class="nutrient-val">4g</div><div class="nutrient-name">Protein</div></div>
+          <div class="nutrient-pill ivory"><div class="nutrient-val">1g</div><div class="nutrient-name">Fat</div></div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:#8A90A8;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px">NOTES</div>
+        <div class="warning-tag"><span>⚠️</span><span class="warning-tag-text">Monitor portion size — high in carbohydrates for diabetics</span></div>
+        <div style="background:#10B98112;border:1px solid #10B98140;border-radius:8px;padding:8px 10px;display:flex;align-items:flex-start;gap:6px">
+          <span>✅</span><span style="font-size:11px;color:#10B981">Low glycemic index — good for blood sugar control</span>
+        </div>
+      </div></div>
+    </div>
+
+  </div>
+</div><!-- /panel-result -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- PROFILE EDIT PANEL -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-profile">
+  <div class="compare-grid">
+
+    <!-- DARK -->
+    <div class="phone-wrap">
+      <div><div class="phone-label" style="color:#00D4FF;text-align:center">Current — Dark</div><div class="phone-sublabel">Edit Profile</div></div>
+      <div class="phone"><div class="phone-screen dark">
+        <div class="notch"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <div style="width:32px;height:32px;border-radius:999px;background:#131736;border:1px solid #2A3060;display:flex;align-items:center;justify-content:center;font-size:14px;color:#00D4FF">←</div>
+          <span style="font-size:15px;font-weight:700;color:#F1F5F9">Edit Profile</span>
+          <div style="width:32px"></div>
+        </div>
+        <div style="text-align:center;margin-bottom:16px">
+          <div style="width:64px;height:64px;border-radius:999px;background:#00D4FF22;border:2px solid #00D4FF60;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#00D4FF;margin:0 auto 6px">A</div>
+          <div style="font-size:12px;color:#475569">ahmed@example.com</div>
+        </div>
+        <div style="background:#131736;border-radius:16px;padding:14px;border:1px solid #2A3060">
+          <div style="font-size:11px;font-weight:700;color:#00D4FF;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:12px">PERSONAL INFO</div>
+          <div class="edit-input dark"><span class="edit-input-icon">👤</span><span class="edit-input-text">Ahmed Rahman</span></div>
+          <div style="display:flex;gap:8px">
+            <div class="edit-input dark" style="flex:1"><span class="edit-input-icon">📅</span><span class="edit-input-text">34</span></div>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:#F1F5F9;margin:10px 0 6px">Gender</div>
+          <div class="chip-row">
+            <span class="chip-item active-chip">Male</span>
+            <span class="chip-item">Female</span>
+            <span class="chip-item">Other</span>
+          </div>
+          <div style="display:flex;gap:8px">
+            <div class="edit-input dark" style="flex:1"><span class="edit-input-icon">📏</span><span class="edit-input-text">175</span></div>
+            <div class="edit-input dark" style="flex:1"><span class="edit-input-icon">⚖️</span><span class="edit-input-text">78</span></div>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:#F1F5F9;margin:10px 0 6px">Conditions</div>
+          <div class="chip-row">
+            <span class="chip-item active-chip">✓ Diabetes</span>
+            <span class="chip-item active-chip">✓ Hypertension</span>
+            <span class="chip-item">Heart Disease</span>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:#F1F5F9;margin:10px 0 6px">Allergies</div>
+          <div class="chip-row">
+            <span class="chip-item avoid-chip">! Nut Allergy</span>
+            <span class="chip-item">Gluten</span>
+          </div>
+          <div class="save-btn dark">✓ Save Changes</div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- PEARL A -->
+    <div class="phone-wrap">
+      <div><div class="phone-label" style="color:#0099CC;text-align:center">A — Pearl White</div><div class="phone-sublabel">Edit Profile</div></div>
+      <div class="phone"><div class="phone-screen pearl">
+        <div class="notch"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <div style="width:32px;height:32px;border-radius:999px;background:#EFF4FF;border:1px solid #E2E8F0;display:flex;align-items:center;justify-content:center;font-size:14px;color:#0099CC">←</div>
+          <span style="font-size:15px;font-weight:700;color:#0A0E27">Edit Profile</span>
+          <div style="width:32px"></div>
+        </div>
+        <div style="text-align:center;margin-bottom:16px">
+          <div style="width:64px;height:64px;border-radius:999px;background:#0099CC22;border:2px solid #0099CC60;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#0099CC;margin:0 auto 6px">A</div>
+          <div style="font-size:12px;color:#64748B">ahmed@example.com</div>
+        </div>
+        <div style="background:#FFFFFF;border-radius:16px;padding:14px;border:1px solid #E2E8F0;box-shadow:0 2px 12px rgba(0,0,0,0.06)">
+          <div style="font-size:11px;font-weight:700;color:#0099CC;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:12px">PERSONAL INFO</div>
+          <div class="edit-input pearl"><span class="edit-input-icon">👤</span><span class="edit-input-text">Ahmed Rahman</span></div>
+          <div class="edit-input pearl"><span class="edit-input-icon">📅</span><span class="edit-input-text">34</span></div>
+          <div style="font-size:12px;font-weight:600;color:#0A0E27;margin:10px 0 6px">Gender</div>
+          <div class="chip-row">
+            <span class="chip-item pearl active-chip">Male</span>
+            <span class="chip-item pearl">Female</span>
+            <span class="chip-item pearl">Other</span>
+          </div>
+          <div style="display:flex;gap:8px">
+            <div class="edit-input pearl" style="flex:1"><span class="edit-input-icon">📏</span><span class="edit-input-text">175</span></div>
+            <div class="edit-input pearl" style="flex:1"><span class="edit-input-icon">⚖️</span><span class="edit-input-text">78</span></div>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:#0A0E27;margin:10px 0 6px">Conditions</div>
+          <div class="chip-row">
+            <span class="chip-item pearl active-chip">✓ Diabetes</span>
+            <span class="chip-item pearl active-chip">✓ Hypertension</span>
+            <span class="chip-item pearl">Heart Disease</span>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:#0A0E27;margin:10px 0 6px">Allergies</div>
+          <div class="chip-row">
+            <span class="chip-item avoid-chip">! Nut Allergy</span>
+            <span class="chip-item pearl">Gluten</span>
+          </div>
+          <div class="save-btn pearl">✓ Save Changes</div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- SKY B -->
+    <div class="phone-wrap">
+      <div><div class="phone-label" style="color:#0EA5E9;text-align:center">B — Sky Mist</div><div class="phone-sublabel">Edit Profile</div></div>
+      <div class="phone"><div class="phone-screen sky">
+        <div class="notch"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <div style="width:32px;height:32px;border-radius:999px;background:#E8EDF5;border:1px solid #CBD5E1;display:flex;align-items:center;justify-content:center;font-size:14px;color:#0EA5E9">←</div>
+          <span style="font-size:15px;font-weight:700;color:#0F172A">Edit Profile</span>
+          <div style="width:32px"></div>
+        </div>
+        <div style="text-align:center;margin-bottom:16px">
+          <div style="width:64px;height:64px;border-radius:999px;background:#0EA5E922;border:2px solid #0EA5E960;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#0EA5E9;margin:0 auto 6px">A</div>
+          <div style="font-size:12px;color:#64748B">ahmed@example.com</div>
+        </div>
+        <div style="background:#FFFFFF;border-radius:16px;padding:14px;border:1px solid #CBD5E1;box-shadow:0 2px 12px rgba(0,0,0,0.06)">
+          <div style="font-size:11px;font-weight:700;color:#0EA5E9;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:12px">PERSONAL INFO</div>
+          <div class="edit-input sky"><span class="edit-input-icon">👤</span><span class="edit-input-text">Ahmed Rahman</span></div>
+          <div class="edit-input sky"><span class="edit-input-icon">📅</span><span class="edit-input-text">34</span></div>
+          <div style="font-size:12px;font-weight:600;color:#0F172A;margin:10px 0 6px">Gender</div>
+          <div class="chip-row">
+            <span class="chip-item sky active-chip">Male</span>
+            <span class="chip-item sky">Female</span>
+            <span class="chip-item sky">Other</span>
+          </div>
+          <div style="display:flex;gap:8px">
+            <div class="edit-input sky" style="flex:1"><span class="edit-input-icon">📏</span><span class="edit-input-text">175</span></div>
+            <div class="edit-input sky" style="flex:1"><span class="edit-input-icon">⚖️</span><span class="edit-input-text">78</span></div>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:#0F172A;margin:10px 0 6px">Conditions</div>
+          <div class="chip-row">
+            <span class="chip-item sky active-chip">✓ Diabetes</span>
+            <span class="chip-item sky active-chip">✓ Hypertension</span>
+            <span class="chip-item sky">Heart Disease</span>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:#0F172A;margin:10px 0 6px">Allergies</div>
+          <div class="chip-row">
+            <span class="chip-item avoid-chip">! Nut Allergy</span>
+            <span class="chip-item sky">Gluten</span>
+          </div>
+          <div class="save-btn sky">✓ Save Changes</div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- IVORY C -->
+    <div class="phone-wrap">
+      <div><div class="phone-label" style="color:#00A8C6;text-align:center">C — Warm Ivory</div><div class="phone-sublabel">Edit Profile</div></div>
+      <div class="phone"><div class="phone-screen ivory">
+        <div class="notch"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <div style="width:32px;height:32px;border-radius:999px;background:#FDF6E3;border:1px solid #E8DFC8;display:flex;align-items:center;justify-content:center;font-size:14px;color:#00A8C6">←</div>
+          <span style="font-size:15px;font-weight:700;color:#1A1E3A">Edit Profile</span>
+          <div style="width:32px"></div>
+        </div>
+        <div style="text-align:center;margin-bottom:16px">
+          <div style="width:64px;height:64px;border-radius:999px;background:#00A8C622;border:2px solid #00A8C660;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#00A8C6;margin:0 auto 6px">A</div>
+          <div style="font-size:12px;color:#6B6F88">ahmed@example.com</div>
+        </div>
+        <div style="background:#FFFFFF;border-radius:16px;padding:14px;border:1px solid #E8DFC8;box-shadow:0 2px 12px rgba(0,0,0,0.06)">
+          <div style="font-size:11px;font-weight:700;color:#00A8C6;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:12px">PERSONAL INFO</div>
+          <div class="edit-input ivory"><span class="edit-input-icon">👤</span><span class="edit-input-text">Ahmed Rahman</span></div>
+          <div class="edit-input ivory"><span class="edit-input-icon">📅</span><span class="edit-input-text">34</span></div>
+          <div style="font-size:12px;font-weight:600;color:#1A1E3A;margin:10px 0 6px">Gender</div>
+          <div class="chip-row">
+            <span class="chip-item ivory active-chip">Male</span>
+            <span class="chip-item ivory">Female</span>
+            <span class="chip-item ivory">Other</span>
+          </div>
+          <div style="display:flex;gap:8px">
+            <div class="edit-input ivory" style="flex:1"><span class="edit-input-icon">📏</span><span class="edit-input-text">175</span></div>
+            <div class="edit-input ivory" style="flex:1"><span class="edit-input-icon">⚖️</span><span class="edit-input-text">78</span></div>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:#1A1E3A;margin:10px 0 6px">Conditions</div>
+          <div class="chip-row">
+            <span class="chip-item ivory active-chip">✓ Diabetes</span>
+            <span class="chip-item ivory active-chip">✓ Hypertension</span>
+            <span class="chip-item ivory">Heart Disease</span>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:#1A1E3A;margin:10px 0 6px">Allergies</div>
+          <div class="chip-row">
+            <span class="chip-item avoid-chip">! Nut Allergy</span>
+            <span class="chip-item ivory">Gluten</span>
+          </div>
+          <div class="save-btn ivory">✓ Save Changes</div>
+        </div>
+      </div></div>
+    </div>
+
+  </div>
+</div><!-- /panel-profile -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- SWATCHES PANEL -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-swatches">
+  <div class="swatch-grid">
+
+    <!-- DARK (current) -->
+    <div class="swatch-card">
+      <div class="swatch-card-header" style="background:#0A0E27;color:#00D4FF">Current — Dark Mode</div>
+      <div class="swatch-row">
+        <div class="swatch d-bg"><span>#0A0E27</span></div>
+        <div class="swatch d-card"><span>#131736</span></div>
+        <div class="swatch d-elev"><span>#1E2348</span></div>
+        <div class="swatch d-border"><span>#2A3060</span></div>
+        <div class="swatch d-input"><span>#1E2348</span></div>
+      </div>
+      <div class="swatch-labels">
+        <div class="swatch-label">BG</div><div class="swatch-label">Card</div><div class="swatch-label">Elevated</div><div class="swatch-label">Border</div><div class="swatch-label">Input</div>
+      </div>
+      <div class="swatch-row">
+        <div class="swatch d-accent"><span>#00D4FF</span></div>
+        <div class="swatch d-acc2"><span>#00A8CC</span></div>
+        <div class="swatch" style="background:#10B981"><span>#10B981</span></div>
+        <div class="swatch" style="background:#F59E0B"><span>#F59E0B</span></div>
+        <div class="swatch" style="background:#EF4444"><span>#EF4444</span></div>
+      </div>
+      <div class="swatch-labels">
+        <div class="swatch-label">Accent</div><div class="swatch-label">Acc Dark</div><div class="swatch-label">Safe</div><div class="swatch-label">Caution</div><div class="swatch-label">Avoid</div>
+      </div>
+      <div class="swatch-row">
+        <div class="swatch d-tp"><span>#F1F5F9</span></div>
+        <div class="swatch d-ts"><span>#94A3B8</span></div>
+        <div class="swatch d-tt"><span>#475569</span></div>
+        <div class="swatch" style="background:#131736;border:1px solid #2A3060"></div>
+        <div class="swatch" style="background:#131736;border:1px solid #2A3060"></div>
+      </div>
+      <div class="swatch-labels">
+        <div class="swatch-label">Text 1°</div><div class="swatch-label">Text 2°</div><div class="swatch-label">Text 3°</div><div class="swatch-label"></div><div class="swatch-label"></div>
+      </div>
+    </div>
+
+    <!-- PALETTE A -->
+    <div class="swatch-card">
+      <div class="swatch-card-header" style="background:#F8FAFF;color:#0099CC;border-bottom:1px solid #E2E8F0">A — Pearl White</div>
+      <div class="swatch-row">
+        <div class="swatch a-bg"><span>#F8FAFF</span></div>
+        <div class="swatch a-card"><span>#FFFFFF</span></div>
+        <div class="swatch a-elev"><span>#EFF4FF</span></div>
+        <div class="swatch a-border"><span>#E2E8F0</span></div>
+        <div class="swatch a-input"><span>#F1F5FF</span></div>
+      </div>
+      <div class="swatch-labels">
+        <div class="swatch-label">BG</div><div class="swatch-label">Card</div><div class="swatch-label">Elevated</div><div class="swatch-label">Border</div><div class="swatch-label">Input</div>
+      </div>
+      <div class="swatch-row">
+        <div class="swatch a-accent"><span>#0099CC</span></div>
+        <div class="swatch a-acc2"><span>#007AA3</span></div>
+        <div class="swatch" style="background:#10B981"><span>#10B981</span></div>
+        <div class="swatch" style="background:#F59E0B"><span>#F59E0B</span></div>
+        <div class="swatch" style="background:#EF4444"><span>#EF4444</span></div>
+      </div>
+      <div class="swatch-labels">
+        <div class="swatch-label">Accent</div><div class="swatch-label">Acc Dark</div><div class="swatch-label">Safe</div><div class="swatch-label">Caution</div><div class="swatch-label">Avoid</div>
+      </div>
+      <div class="swatch-row">
+        <div class="swatch a-tp"><span>#0A0E27</span></div>
+        <div class="swatch a-ts"><span>#334155</span></div>
+        <div class="swatch a-tt"><span>#64748B</span></div>
+        <div class="swatch" style="background:#F8FAFF;border:1px solid #E2E8F0"></div>
+        <div class="swatch" style="background:#F8FAFF;border:1px solid #E2E8F0"></div>
+      </div>
+      <div class="swatch-labels">
+        <div class="swatch-label">Text 1°</div><div class="swatch-label">Text 2°</div><div class="swatch-label">Text 3°</div><div class="swatch-label"></div><div class="swatch-label"></div>
+      </div>
+    </div>
+
+    <!-- PALETTE B -->
+    <div class="swatch-card">
+      <div class="swatch-card-header" style="background:#F0F4F8;color:#0EA5E9;border-bottom:1px solid #CBD5E1">B — Sky Mist</div>
+      <div class="swatch-row">
+        <div class="swatch b-bg"><span>#F0F4F8</span></div>
+        <div class="swatch b-card"><span>#FFFFFF</span></div>
+        <div class="swatch b-elev"><span>#E8EDF5</span></div>
+        <div class="swatch b-border"><span>#CBD5E1</span></div>
+        <div class="swatch b-input"><span>#FFFFFF</span></div>
+      </div>
+      <div class="swatch-labels">
+        <div class="swatch-label">BG</div><div class="swatch-label">Card</div><div class="swatch-label">Elevated</div><div class="swatch-label">Border</div><div class="swatch-label">Input</div>
+      </div>
+      <div class="swatch-row">
+        <div class="swatch b-accent"><span>#0EA5E9</span></div>
+        <div class="swatch b-acc2"><span>#0284C7</span></div>
+        <div class="swatch" style="background:#10B981"><span>#10B981</span></div>
+        <div class="swatch" style="background:#F59E0B"><span>#F59E0B</span></div>
+        <div class="swatch" style="background:#EF4444"><span>#EF4444</span></div>
+      </div>
+      <div class="swatch-labels">
+        <div class="swatch-label">Accent</div><div class="swatch-label">Acc Dark</div><div class="swatch-label">Safe</div><div class="swatch-label">Caution</div><div class="swatch-label">Avoid</div>
+      </div>
+      <div class="swatch-row">
+        <div class="swatch b-tp"><span>#0F172A</span></div>
+        <div class="swatch b-ts"><span>#475569</span></div>
+        <div class="swatch b-tt"><span>#94A3B8</span></div>
+        <div class="swatch" style="background:#F0F4F8;border:1px solid #CBD5E1"></div>
+        <div class="swatch" style="background:#F0F4F8;border:1px solid #CBD5E1"></div>
+      </div>
+      <div class="swatch-labels">
+        <div class="swatch-label">Text 1°</div><div class="swatch-label">Text 2°</div><div class="swatch-label">Text 3°</div><div class="swatch-label"></div><div class="swatch-label"></div>
+      </div>
+    </div>
+
+    <!-- PALETTE C -->
+    <div class="swatch-card">
+      <div class="swatch-card-header" style="background:#FDFAF3;color:#00A8C6;border-bottom:1px solid #E8DFC8">C — Warm Ivory</div>
+      <div class="swatch-row">
+        <div class="swatch c-bg"><span>#FDFAF3</span></div>
+        <div class="swatch c-card"><span>#FFFFFF</span></div>
+        <div class="swatch c-elev"><span>#FDF6E3</span></div>
+        <div class="swatch c-border"><span>#E8DFC8</span></div>
+        <div class="swatch c-input"><span>#FFF9EE</span></div>
+      </div>
+      <div class="swatch-labels">
+        <div class="swatch-label">BG</div><div class="swatch-label">Card</div><div class="swatch-label">Elevated</div><div class="swatch-label">Border</div><div class="swatch-label">Input</div>
+      </div>
+      <div class="swatch-row">
+        <div class="swatch c-accent"><span>#00A8C6</span></div>
+        <div class="swatch c-acc2"><span>#007A94</span></div>
+        <div class="swatch" style="background:#10B981"><span>#10B981</span></div>
+        <div class="swatch" style="background:#F59E0B"><span>#F59E0B</span></div>
+        <div class="swatch" style="background:#EF4444"><span>#EF4444</span></div>
+      </div>
+      <div class="swatch-labels">
+        <div class="swatch-label">Accent</div><div class="swatch-label">Acc Dark</div><div class="swatch-label">Safe</div><div class="swatch-label">Caution</div><div class="swatch-label">Avoid</div>
+      </div>
+      <div class="swatch-row">
+        <div class="swatch c-tp"><span>#1A1E3A</span></div>
+        <div class="swatch c-ts"><span>#4A506A</span></div>
+        <div class="swatch c-tt"><span>#8A90A8</span></div>
+        <div class="swatch" style="background:#FDFAF3;border:1px solid #E8DFC8"></div>
+        <div class="swatch" style="background:#FDFAF3;border:1px solid #E8DFC8"></div>
+      </div>
+      <div class="swatch-labels">
+        <div class="swatch-label">Text 1°</div><div class="swatch-label">Text 2°</div><div class="swatch-label">Text 3°</div><div class="swatch-label"></div><div class="swatch-label"></div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /panel-swatches -->
+
+<p class="footer-note">
+  Open in any browser · Hover swatches to see hex codes<br>
+  Tell Claude <span>A</span>, <span>B</span>, or <span>C</span> to implement the chosen palette
+</p>
+
+<script>
+  function showPanel(name) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    event.target.classList.add('active');
+  }
+</script>
+</body>
+</html>
