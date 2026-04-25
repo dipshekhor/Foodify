@@ -172,6 +172,23 @@ export default function HomeScreen({ navigation, route }) {
           ))}
         </View>
 
+        {/* ── Community Blog ── */}
+        <Text style={styles.sectionLabel}>COMMUNITY</Text>
+        <TouchableOpacity
+          style={styles.blogCard}
+          onPress={() => navigation.navigate('BlogFeed')}
+          activeOpacity={0.85}
+        >
+          <View style={styles.blogIconWrapper}>
+            <Ionicons name="newspaper-outline" size={24} color={COLORS.cyan} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.blogCardTitle}>Community Blog</Text>
+            <Text style={styles.blogCardSub}>Tips, questions & shared experiences</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
+        </TouchableOpacity>
+
         {/* ── Recent checks ── */}
         <View style={styles.recentHeader}>
           <Text style={styles.sectionLabel}>RECENT CHECKS</Text>
@@ -270,6 +287,19 @@ const makeStyles = ({ COLORS, SHADOWS }) => StyleSheet.create({
   },
   modeBtnLabel: { fontSize: 13, fontWeight: '700', color: '#fff', textAlign: 'center', marginBottom: 2 },
   modeBtnSub: { fontSize: 10, color: 'rgba(255,255,255,0.75)', textAlign: 'center' },
+  blogCard: {
+    flexDirection: 'row', alignItems: 'center', gap: SPACING.md,
+    backgroundColor: COLORS.navyMid, borderRadius: RADIUS.lg,
+    padding: SPACING.md, marginBottom: SPACING.lg,
+    borderWidth: 1, borderColor: COLORS.navyBorder, ...SHADOWS.card,
+  },
+  blogIconWrapper: {
+    width: 48, height: 48, borderRadius: RADIUS.md,
+    backgroundColor: COLORS.cyanGlow, borderWidth: 1, borderColor: COLORS.cyan + '40',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  blogCardTitle: { fontSize: 15, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 2 },
+  blogCardSub:   { fontSize: 12, color: COLORS.textSecondary },
   recentHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING.sm },
   seeAllText: { fontSize: 13, color: COLORS.cyan, fontWeight: '600' },
   emptyHistory: {

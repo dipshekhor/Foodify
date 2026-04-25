@@ -10,7 +10,7 @@
 import axios from 'axios';
 
 // !! CHANGE THIS to your laptop IP !!
-export const API_BASE_URL = 'http://192.168.0.103:8000';
+export const API_BASE_URL = 'http://192.168.0.105:8000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -142,6 +142,46 @@ export const getFoodCheckDetail = async (userId, checkId) => {
 export const deleteFoodCheck = async (checkId) => {
   const res = await api.delete(`/api/history/${checkId}`);
   return res.data;
+};
+
+// ── Blog ──────────────────────────────────────────────────────────────────────
+// Token is read fresh per call so it always reflects the current session.
+const _getAuthHeader = async () => {
+  const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+  const token = await AsyncStorage.getItem('foodapp_token');
+  return { Authorization: `Bearer ${token}` };
+};
+
+export const getBlogPosts = async () => {
+  const res = await api.get('/api/blog/posts');
+  return res.data;
+};
+
+export const createBlogPost = async ({ title, body }) => {
+  const headers = await _getAuthHeader();
+  const res = await api.post('/api/blog/posts', { title, body }, { headers });
+  return res.data;
+};
+
+export const getBlogPost = async (postId) => {
+  const res = await api.get(`/api/blog/posts/${postId}`);
+  return res.data;
+};
+
+export const createBlogAnswer = async (postId, body) => {
+  const headers = await _getAuthHeader();
+  const res = await api.post(`/api/blog/posts/${postId}/answers`, { body }, { headers });
+  return res.data;
+};
+
+export const deleteBlogPost = async (postId) => {
+  const headers = await _getAuthHeader();
+  await api.delete(`/api/blog/posts/${postId}`, { headers });
+};
+
+export const deleteBlogAnswer = async (answerId) => {
+  const headers = await _getAuthHeader();
+  await api.delete(`/api/blog/answers/${answerId}`, { headers });
 };
 
 // ── Error message helper ──────────────────────────────────────────────────────
