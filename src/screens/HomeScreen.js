@@ -10,7 +10,7 @@ import { useFocusEffect }  from '@react-navigation/native';
 
 import { SPACING, RADIUS, FONTS, VERDICT_CONFIG } from '../theme/index';
 import { useTheme }       from '../context/ThemeContext';
-import { getFoodHistory } from '../api/index';
+import { getFoodHistory, getFoodCheckDetail } from '../api/index';
 import { clearSession, loadSession } from '../storage/userStorage';
 
 export default function HomeScreen({ navigation, route }) {
@@ -19,8 +19,9 @@ export default function HomeScreen({ navigation, route }) {
 
   const [profile, setProfile] = useState(route?.params?.profile || null);
   const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [userId,  setUserId]  = useState(null);
+  const [loading,       setLoading]       = useState(false);
+  const [loadingDetail, setLoadingDetail] = useState(null); // id of item being opened
+  const [userId,        setUserId]        = useState(null);
 
   const styles = useMemo(() => makeStyles({ COLORS, SHADOWS }), [COLORS]);
 
@@ -51,6 +52,32 @@ export default function HomeScreen({ navigation, route }) {
       { text: 'Cancel', style: 'cancel' },
       { text: 'Log Out', style: 'destructive', onPress: async () => { await clearSession(); navigation.replace('Login'); } },
     ]);
+  };
+
+  const openDetail = async (item) => {
+    setLoadingDetail(item.id);
+    try {
+      const detail = await getFoodCheckDetail(userId, item.id);
+      navigation.navigate('Result', {
+        result: {
+          verdict:       detail.verdict,
+          score:         detail.score,
+          warnings:      detail.warnings      || [],
+          reasons:       detail.reasons       || [],
+          food_info:     detail.nutrients     || {},
+          ml_prediction: detail.ml_prediction || null,
+          check_id:      detail.id,
+        },
+        foodName:  detail.food_found || detail.query || 'Unknown food',
+        inputMode: detail.input_mode,
+        userId,
+        profile,
+      });
+    } catch {
+      Alert.alert('Error', 'Could not load check details.');
+    } finally {
+      setLoadingDetail(null);
+    }
   };
 
   const getVerdictColor = (verdict) => {
@@ -118,12 +145,12 @@ export default function HomeScreen({ navigation, route }) {
             <TouchableOpacity onPress={() => navigation.navigate('Profile', { profile, userId })} style={styles.iconBtnSm}>
               <Ionicons name="create-outline" size={20} color={COLORS.cyan} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => Alert.alert('Coming Soon', 'History screen is not built yet.')} style={styles.iconBtnSm}>
+            <TouchableOpacity onPress={() => navigation.navigate('History', { userId, profile })} style={styles.iconBtnSm}>
               <Ionicons name="time-outline" size={20} color={COLORS.cyan} />
             </TouchableOpacity>
           </View>
 
-          {(profile?.diseases?.length > 0 || profile?.allergies?.length > 0) && (
+          {profile?.diseases?.length > 0 && (
             <View style={styles.tagsRow}>
               {profile?.diseases?.map(d => (
                 <View key={d} style={styles.diseaseTag}>
@@ -131,19 +158,13 @@ export default function HomeScreen({ navigation, route }) {
                   <Text style={styles.diseaseTagText}>{d}</Text>
                 </View>
               ))}
-              {profile?.allergies?.map(a => (
-                <View key={a} style={styles.allergyTag}>
-                  <Ionicons name="warning" size={10} color={COLORS.avoid} />
-                  <Text style={styles.allergyTagText}>{a}</Text>
-                </View>
-              ))}
             </View>
           )}
 
-          {profile?.diseases?.length === 0 && profile?.allergies?.length === 0 && (
+          {profile?.diseases?.length === 0 && (
             <View style={styles.noConditionsRow}>
               <Ionicons name="checkmark-circle" size={14} color={COLORS.safe} />
-              <Text style={styles.noConditionsText}>No conditions or allergies on record</Text>
+              <Text style={styles.noConditionsText}>No conditions on record</Text>
             </View>
           )}
         </View>
@@ -193,7 +214,7 @@ export default function HomeScreen({ navigation, route }) {
         <View style={styles.recentHeader}>
           <Text style={styles.sectionLabel}>RECENT CHECKS</Text>
           {history.length > 0 && (
-            <TouchableOpacity onPress={() => Alert.alert('Coming Soon', 'History screen is not built yet.')}>
+            <TouchableOpacity onPress={() => navigation.navigate('History', { userId, profile })}>
               <Text style={styles.seeAllText}>See all</Text>
             </TouchableOpacity>
           )}
@@ -209,19 +230,37 @@ export default function HomeScreen({ navigation, route }) {
           </View>
         ) : (
           history.map((item) => (
-            <TouchableOpacity key={item.id} style={styles.historyItem} onPress={() => navigation.navigate('History', { userId })} activeOpacity={0.8}>
+            <TouchableOpacity
+                key={item.id}
+                style={styles.historyItem}
+                onPress={() => openDetail(item)}
+                activeOpacity={0.8}
+                disabled={loadingDetail === item.id}
+              >
               <View style={[styles.verdictBar, { backgroundColor: getVerdictColor(item.verdict) }]} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.historyFood} numberOfLines={1}>{item.food_found || item.query || 'Unknown food'}</Text>
                 <Text style={styles.historyMeta}>{item.input_mode?.toUpperCase()}  ·  {formatDate(item.checked_at)}</Text>
               </View>
-              <View style={[styles.scoreBadge, { backgroundColor: getVerdictColor(item.verdict) + '22' }]}>
-                <Text style={[styles.scoreText, { color: getVerdictColor(item.verdict) }]}>{item.score}</Text>
-              </View>
-              <Text style={[styles.verdictLabel, { color: getVerdictColor(item.verdict) }]}>{item.verdict?.toUpperCase()}</Text>
+              {loadingDetail === item.id ? (
+                <ActivityIndicator size="small" color={COLORS.cyan} style={{ marginRight: 8 }} />
+              ) : (
+                <>
+                  <View style={[styles.scoreBadge, { backgroundColor: getVerdictColor(item.verdict) + '22' }]}>
+                    <Text style={[styles.scoreText, { color: getVerdictColor(item.verdict) }]}>{item.score}</Text>
+                  </View>
+                  <Text style={[styles.verdictLabel, { color: getVerdictColor(item.verdict) }]}>{item.verdict?.toUpperCase()}</Text>
+                </>
+              )}
             </TouchableOpacity>
           ))
         )}
+
+        {/* ── Logout ── */}
+        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
+          <Ionicons name="log-out-outline" size={18} color={COLORS.avoid} />
+          <Text style={styles.logoutBtnText}>Log Out</Text>
+        </TouchableOpacity>
 
         <View style={{ height: SPACING.xl }} />
       </ScrollView>
@@ -269,12 +308,6 @@ const makeStyles = ({ COLORS, SHADOWS }) => StyleSheet.create({
     paddingVertical: 4, paddingHorizontal: 10, borderWidth: 1, borderColor: COLORS.cautionBorder,
   },
   diseaseTagText: { fontSize: 11, color: COLORS.caution, fontWeight: '600' },
-  allergyTag: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: COLORS.avoidBg, borderRadius: RADIUS.full,
-    paddingVertical: 4, paddingHorizontal: 10, borderWidth: 1, borderColor: COLORS.avoidBorder,
-  },
-  allergyTagText: { fontSize: 11, color: COLORS.avoid, fontWeight: '600' },
   noConditionsRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: SPACING.xs },
   noConditionsText: { fontSize: 12, color: COLORS.safe },
   sectionLabel: { ...FONTS.label, color: COLORS.textTertiary, marginBottom: SPACING.sm },
@@ -321,4 +354,11 @@ const makeStyles = ({ COLORS, SHADOWS }) => StyleSheet.create({
   scoreBadge: { width: 36, height: 36, borderRadius: RADIUS.full, alignItems: 'center', justifyContent: 'center' },
   scoreText: { fontSize: 13, fontWeight: '800' },
   verdictLabel: { fontSize: 10, fontWeight: '700', width: 44, textAlign: 'right' },
+  logoutBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: SPACING.sm, paddingVertical: 14, marginTop: SPACING.md,
+    borderRadius: RADIUS.md, borderWidth: 1.5, borderColor: COLORS.avoid + '55',
+    backgroundColor: COLORS.avoidBg,
+  },
+  logoutBtnText: { fontSize: 14, fontWeight: '700', color: COLORS.avoid },
 });

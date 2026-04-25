@@ -26,17 +26,50 @@ export default function ResultScreen({ navigation, route }) {
   const getVerdictColor = (v) =>
     v === 'safe' ? COLORS.safe : v === 'avoid' ? COLORS.avoid : COLORS.caution;
 
-  const NutrientRow = ({ icon, label, value, unit, highlight }) => (
-    <View style={[styles.nutrientRow, highlight && styles.nutrientRowHighlight]}>
-      <View style={styles.nutrientIcon}>
-        <Ionicons name={icon} size={16} color={highlight ? COLORS.avoid : COLORS.cyan} />
+  const targets = result?.user_targets || {};
+  const impact  = result?.budget_impact || {};
+
+  // Format a daily target (rounded). Returns null if missing.
+  const fmtTarget = (key) => {
+    const v = targets[key];
+    return v !== undefined && v !== null ? Math.round(v) : null;
+  };
+
+  // Pick a colour band for the impact percentage.
+  const impactColor = (pct) => {
+    if (pct == null) return COLORS.textTertiary;
+    if (pct >= 0.50) return COLORS.avoid;
+    if (pct >= 0.30) return COLORS.caution;
+    return COLORS.safe;
+  };
+
+  const NutrientRow = ({ icon, label, value, unit, highlight, targetKey, nutrientKey }) => {
+    const targetVal = targetKey ? fmtTarget(targetKey) : null;
+    const pct       = nutrientKey != null ? impact[nutrientKey] : null;
+    return (
+      <View style={[styles.nutrientRow, highlight && styles.nutrientRowHighlight]}>
+        <View style={styles.nutrientIcon}>
+          <Ionicons name={icon} size={16} color={highlight ? COLORS.avoid : COLORS.cyan} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.nutrientLabel}>{label}</Text>
+          {targetVal != null && (
+            <Text style={styles.nutrientTargetText}>
+              Daily target: {targetVal}{unit}
+              {pct != null && (
+                <Text style={{ color: impactColor(pct) }}>
+                  {'  •  '}{Math.round(pct * 100)}% of budget
+                </Text>
+              )}
+            </Text>
+          )}
+        </View>
+        <Text style={[styles.nutrientValue, highlight && { color: COLORS.avoid }]}>
+          {value !== undefined && value !== null ? `${value}${unit}` : 'N/A'}
+        </Text>
       </View>
-      <Text style={styles.nutrientLabel}>{label}</Text>
-      <Text style={[styles.nutrientValue, highlight && { color: COLORS.avoid }]}>
-        {value !== undefined && value !== null ? `${value}${unit}` : 'N/A'}
-      </Text>
-    </View>
-  );
+    );
+  };
 
   return (
     <LinearGradient colors={GRADIENTS.background} style={{ flex: 1 }}>
@@ -125,23 +158,41 @@ export default function ResultScreen({ navigation, route }) {
           </View>
         )}
 
-        {/* ── Nutrients ── */}
+        {/* ── Nutrients vs your daily targets ── */}
         {food && Object.keys(food).length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="bar-chart-outline" size={16} color={COLORS.cyan} />
-              <Text style={styles.sectionTitle}>Nutrient Breakdown</Text>
+              <Text style={styles.sectionTitle}>
+                Nutrients vs Your Daily Targets
+              </Text>
             </View>
+            {Object.keys(targets).length > 0 && (
+              <Text style={styles.targetCaption}>
+                Predicted from your profile (age, weight, activity, conditions).
+                Each row shows this food's value, your daily target, and how much
+                of that target this single serving uses.
+              </Text>
+            )}
             <View style={styles.nutrientCard}>
-              <NutrientRow icon="flame-outline"      label="Calories"  value={food.calories?.toFixed(0)} unit=" kcal" />
+              <NutrientRow icon="flame-outline"      label="Calories"  value={food.calories?.toFixed(0)} unit=" kcal"
+                targetKey="target_calories" nutrientKey="calories" />
               <NutrientRow icon="water-outline"      label="Sodium"    value={food.sodium?.toFixed(0)}   unit=" mg"
+                targetKey="target_sodium"   nutrientKey="sodium"
                 highlight={profile?.diseases?.includes('Hypertension') && food.sodium > (profile?.age >= 50 ? 500 : 600)} />
               <NutrientRow icon="nutrition-outline"  label="Sugar"     value={food.sugar?.toFixed(1)}    unit=" g"
+                targetKey="target_sugar"    nutrientKey="sugar"
                 highlight={profile?.diseases?.includes('Diabetes') && food.sugar > 10} />
-              <NutrientRow icon="restaurant-outline" label="Fat"       value={food.fat?.toFixed(1)}      unit=" g" />
-              <NutrientRow icon="leaf-outline"       label="Fiber"     value={food.fiber?.toFixed(1)}    unit=" g" />
-              <NutrientRow icon="fitness-outline"    label="Protein"   value={food.protein?.toFixed(1)}  unit=" g" />
-              <NutrientRow icon="cube-outline"       label="Carbs"     value={food.carbs?.toFixed(1)}    unit=" g" />
+              <NutrientRow icon="restaurant-outline" label="Fat"       value={food.fat?.toFixed(1)}      unit=" g"
+                targetKey="target_fat"      nutrientKey="fat" />
+              <NutrientRow icon="leaf-outline"       label="Fiber"     value={food.fiber?.toFixed(1)}    unit=" g"
+                targetKey="target_fiber"    nutrientKey="fiber" />
+              <NutrientRow icon="fitness-outline"    label="Protein"   value={food.protein?.toFixed(1)}  unit=" g"
+                targetKey="target_protein"  nutrientKey="protein" />
+              <NutrientRow icon="cube-outline"       label="Carbs"     value={food.carbs?.toFixed(1)}    unit=" g"
+                targetKey="target_carbs"    nutrientKey="carbs" />
+              <NutrientRow icon="ellipse-outline"    label="Cholesterol" value={food.cholesterol?.toFixed(0)} unit=" mg"
+                targetKey="target_cholesterol" nutrientKey="cholesterol" />
             </View>
           </View>
         )}
@@ -237,8 +288,10 @@ const makeStyles = ({ COLORS, SHADOWS }) => StyleSheet.create({
   },
   nutrientRowHighlight: { backgroundColor: COLORS.avoidBg, borderRadius: RADIUS.sm, paddingHorizontal: SPACING.sm },
   nutrientIcon: { width: 28, height: 28, borderRadius: RADIUS.sm, backgroundColor: COLORS.navyLight, alignItems: 'center', justifyContent: 'center' },
-  nutrientLabel: { flex: 1, fontSize: 13, color: COLORS.textSecondary },
+  nutrientLabel: { fontSize: 13, color: COLORS.textSecondary },
+  nutrientTargetText: { fontSize: 11, color: COLORS.textTertiary, marginTop: 2 },
   nutrientValue: { fontSize: 13, fontWeight: '700', color: COLORS.textPrimary },
+  targetCaption: { fontSize: 11, color: COLORS.textTertiary, lineHeight: 16, marginBottom: SPACING.sm },
   mlBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     backgroundColor: COLORS.navyLight, borderRadius: RADIUS.sm,
