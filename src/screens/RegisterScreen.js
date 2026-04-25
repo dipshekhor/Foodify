@@ -14,7 +14,6 @@ import { registerUser } from '../api/index';
 import { saveSession }  from '../storage/userStorage';
 
 const DISEASES  = ['Diabetes', 'Hypertension', 'Heart Disease', 'Obesity', 'Kidney Disease'];
-const ALLERGIES = ['Nut Allergy', 'Gluten Intolerance', 'Lactose Intolerance'];
 const GENDERS   = ['Male', 'Female', 'Other'];
 
 export default function RegisterScreen({ navigation }) {
@@ -34,10 +33,8 @@ export default function RegisterScreen({ navigation }) {
   const [heightCm,      setHeightCm]      = useState('');
   const [weightKg,      setWeightKg]      = useState('');
   const [activityLevel, setActivityLevel] = useState('');
-  const [dietaryPref,   setDietaryPref]   = useState('');
 
   const [diseases,  setDiseases]  = useState([]);
-  const [allergies, setAllergies] = useState([]);
   const [loading,   setLoading]   = useState(false);
 
   const styles = useMemo(() => makeStyles({ COLORS, GRADIENTS, SHADOWS }), [COLORS]);
@@ -74,9 +71,7 @@ export default function RegisterScreen({ navigation }) {
         height_cm:      parseFloat(heightCm),
         weight_kg:      parseFloat(weightKg),
         diseases,
-        allergies,
         activity_level: activityLevel || null,
-        dietary_pref:   dietaryPref   || null,
       });
       await saveSession(result.token, result.profile);
       navigation.replace('Home', { profile: result.profile });
@@ -208,15 +203,6 @@ export default function RegisterScreen({ navigation }) {
         ))}
       </View>
 
-      <Text style={styles.fieldLabel}>Dietary Preference</Text>
-      <View style={styles.chipRow}>
-        {['Omnivore', 'Vegetarian', 'Vegan', 'Pescatarian'].map(d => (
-          <TouchableOpacity key={d} style={[styles.chip, dietaryPref === d && styles.chipActive]} onPress={() => setDietaryPref(d)}>
-            <Text style={[styles.chipText, dietaryPref === d && styles.chipTextActive]}>{d}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
       <TouchableOpacity style={styles.primaryBtn} onPress={() => { if (validateStep2()) setStep(3); }} activeOpacity={0.85}>
         <LinearGradient colors={GRADIENTS.cyan} style={styles.btnGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
           <Text style={styles.btnText}>Continue</Text>
@@ -248,26 +234,10 @@ export default function RegisterScreen({ navigation }) {
         ))}
       </View>
 
-      <Text style={[styles.fieldLabel, { marginTop: SPACING.lg }]}>
-        Food Allergies<Text style={styles.optional}>  (select all that apply)</Text>
-      </Text>
-      <View style={styles.chipRow}>
-        {ALLERGIES.map(a => (
-          <TouchableOpacity key={a} style={[styles.chip, allergies.includes(a) && styles.chipAvoid]} onPress={() => toggle(a, allergies, setAllergies)}>
-            {allergies.includes(a) && <Ionicons name="alert" size={13} color={COLORS.navy} style={{ marginRight: 4 }} />}
-            <Text style={[styles.chipText, allergies.includes(a) && styles.chipTextActive]}>{a}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {(diseases.length > 0 || allergies.length > 0) && (
+      {diseases.length > 0 && (
         <View style={styles.summaryBox}>
           <Ionicons name="shield-checkmark" size={16} color={COLORS.cyan} />
-          <Text style={styles.summaryText}>
-            {diseases.length > 0 && `Conditions: ${diseases.join(', ')}`}
-            {diseases.length > 0 && allergies.length > 0 && '\n'}
-            {allergies.length > 0 && `Allergies: ${allergies.join(', ')}`}
-          </Text>
+          <Text style={styles.summaryText}>{`Conditions: ${diseases.join(', ')}`}</Text>
         </View>
       )}
 
@@ -362,7 +332,6 @@ const makeStyles = ({ COLORS, SHADOWS }) => StyleSheet.create({
     borderColor: COLORS.navyBorder, backgroundColor: COLORS.navyLight,
   },
   chipActive: { backgroundColor: COLORS.cyan, borderColor: COLORS.cyan },
-  chipAvoid:  { backgroundColor: COLORS.avoid, borderColor: COLORS.avoid },
   chipText: { fontSize: 13, color: COLORS.textSecondary, fontWeight: '500' },
   chipTextActive: { color: COLORS.navy, fontWeight: '700' },
   summaryBox: {

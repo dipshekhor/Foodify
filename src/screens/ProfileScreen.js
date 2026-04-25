@@ -14,10 +14,8 @@ import { updateProfile, getErrorMessage } from '../api/index';
 import { updateLocalProfile, loadSession } from '../storage/userStorage';
 
 const DISEASES      = ['Diabetes', 'Hypertension', 'Heart Disease', 'Obesity', 'Kidney Disease'];
-const ALLERGIES     = ['Nut Allergy', 'Gluten Intolerance', 'Lactose Intolerance'];
 const GENDERS       = ['Male', 'Female', 'Other'];
 const ACTIVITY_OPTS = ['Sedentary', 'Lightly Active', 'Moderately Active', 'Very Active'];
-const DIETARY_OPTS  = ['Omnivore', 'Vegetarian', 'Vegan', 'Pescatarian'];
 
 export default function ProfileScreen({ navigation, route }) {
   const { theme, isDark } = useTheme();
@@ -31,9 +29,7 @@ export default function ProfileScreen({ navigation, route }) {
   const [heightCm,      setHeightCm]      = useState(profile?.height_cm?.toString() || '');
   const [weightKg,      setWeightKg]      = useState(profile?.weight_kg?.toString() || '');
   const [activityLevel, setActivityLevel] = useState(profile?.activity_level   || '');
-  const [dietaryPref,   setDietaryPref]   = useState(profile?.dietary_pref     || '');
   const [diseases,      setDiseases]      = useState(profile?.diseases         || []);
-  const [allergies,     setAllergies]     = useState(profile?.allergies        || []);
   const [loading,       setLoading]       = useState(false);
 
   const styles = useMemo(() => makeStyles({ COLORS, SHADOWS }), [COLORS]);
@@ -63,9 +59,7 @@ export default function ProfileScreen({ navigation, route }) {
         height_cm:      parseFloat(heightCm),
         weight_kg:      parseFloat(weightKg),
         activity_level: activityLevel || null,
-        dietary_pref:   dietaryPref   || null,
         diseases,
-        allergies,
       };
       const updatedProfile = await updateProfile(uid, updatedData);
       await updateLocalProfile(updatedProfile);
@@ -158,15 +152,6 @@ export default function ProfileScreen({ navigation, route }) {
               ))}
             </View>
 
-            <Text style={styles.fieldLabel}>Dietary Preference</Text>
-            <View style={styles.chipRow}>
-              {DIETARY_OPTS.map(d => (
-                <TouchableOpacity key={d} style={[styles.chip, dietaryPref === d && styles.chipActive]}
-                  onPress={() => setDietaryPref(prev => prev === d ? '' : d)}>
-                  <Text style={[styles.chipText, dietaryPref === d && styles.chipTextActive]}>{d}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
           </View>
 
           {/* ── Medical Info ── */}
@@ -185,26 +170,10 @@ export default function ProfileScreen({ navigation, route }) {
               ))}
             </View>
 
-            <Text style={[styles.fieldLabel, { marginTop: SPACING.md }]}>
-              Food Allergies<Text style={styles.optional}>  (tap to toggle)</Text>
-            </Text>
-            <View style={styles.chipRow}>
-              {ALLERGIES.map(a => (
-                <TouchableOpacity key={a} style={[styles.chip, allergies.includes(a) && styles.chipAvoid]} onPress={() => toggle(a, allergies, setAllergies)}>
-                  {allergies.includes(a) && <Ionicons name="alert" size={13} color={COLORS.navy} style={{ marginRight: 4 }} />}
-                  <Text style={[styles.chipText, allergies.includes(a) && styles.chipTextActive]}>{a}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {(diseases.length > 0 || allergies.length > 0) && (
+            {diseases.length > 0 && (
               <View style={styles.summaryBox}>
                 <Ionicons name="shield-checkmark" size={16} color={COLORS.cyan} />
-                <Text style={styles.summaryText}>
-                  {diseases.length > 0 && `Conditions: ${diseases.join(', ')}`}
-                  {diseases.length > 0 && allergies.length > 0 && '\n'}
-                  {allergies.length > 0 && `Allergies: ${allergies.join(', ')}`}
-                </Text>
+                <Text style={styles.summaryText}>{`Conditions: ${diseases.join(', ')}`}</Text>
               </View>
             )}
           </View>
@@ -270,7 +239,6 @@ const makeStyles = ({ COLORS, SHADOWS }) => StyleSheet.create({
     borderWidth: 1.5, borderColor: COLORS.navyBorder, backgroundColor: COLORS.navyLight,
   },
   chipActive: { backgroundColor: COLORS.cyan, borderColor: COLORS.cyan },
-  chipAvoid:  { backgroundColor: COLORS.avoid, borderColor: COLORS.avoid },
   chipText: { fontSize: 13, color: COLORS.textSecondary, fontWeight: '500' },
   chipTextActive: { color: COLORS.navy, fontWeight: '700' },
   summaryBox: {
