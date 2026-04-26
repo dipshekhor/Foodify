@@ -30,6 +30,7 @@ import ProfileScreen      from './src/screens/ProfileScreen';
 import BlogFeedScreen    from './src/screens/BlogFeedScreen';
 import BlogPostScreen    from './src/screens/BlogPostScreen';
 import HistoryScreen     from './src/screens/HistoryScreen';
+import OCRScanScreen     from './src/screens/OCRScanScreen';
 
 // Uncomment each screen as you build it in Parts 2–5:
 // import ManualSearchScreen from './src/screens/ManualSearchScreen';
@@ -113,6 +114,7 @@ export default function App() {
         <Stack.Screen name="BlogFeed"     component={BlogFeedScreen} />
         <Stack.Screen name="BlogPost"     component={BlogPostScreen} />
         <Stack.Screen name="History"      component={HistoryScreen} />
+        <Stack.Screen name="OCRScan"      component={OCRScanScreen} />
 
         {/* App screens — uncomment as you build them */}
         {/*
