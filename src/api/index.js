@@ -17,6 +17,34 @@ const api = axios.create({
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' },
 });
+
+const _guessMimeType = (uri = '') => {
+  const lower = String(uri).toLowerCase();
+  if (lower.endsWith('.png')) return 'image/png';
+  if (lower.endsWith('.webp')) return 'image/webp';
+  if (lower.endsWith('.heic')) return 'image/heic';
+  if (lower.endsWith('.heif')) return 'image/heif';
+  return 'image/jpeg';
+};
+
+const _extractErrorDetail = (data) => {
+  if (!data) return null;
+  if (typeof data === 'string') return data;
+  if (typeof data.detail === 'string') return data.detail;
+  if (Array.isArray(data.detail)) {
+    return data.detail
+      .map((item) => {
+        if (!item) return '';
+        if (typeof item === 'string') return item;
+        const loc = Array.isArray(item.loc) ? item.loc.join('.') : '';
+        const msg = item.msg || '';
+        return loc ? `${loc}: ${msg}` : msg;
+      })
+      .filter(Boolean)
+      .join('\n');
+  }
+  return null;
+};
 // ── Auth endpoints — add these to src/api/index.js ───────────────────────────
 
 // Register new account
@@ -84,17 +112,41 @@ export const checkFoodByOCR = async (userId, ocrText) => {
 
 // Mode 1 (alternative): Send raw image, backend runs Tesseract
 export const checkFoodByOCRImage = async (userId, imageUri) => {
+  if (!userId) throw new Error('Missing user ID. Please sign in again.');
+  if (!imageUri) throw new Error('No image selected for OCR scan.');
+
   const formData = new FormData();
   formData.append('user_id', String(userId));
   formData.append('file', {
     uri: imageUri,
-    type: 'image/jpeg',
+    type: _guessMimeType(imageUri),
     name: 'scan.jpg',
   });
   const res = await axios.post(
     `${API_BASE_URL}/api/analyze-ocr-image`,
     formData,
-    { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 20000 }
+    { timeout: 60000 }
+  );
+  return res.data;
+};
+
+// Mode 1 (bilingual): Send raw nutrition-facts photo, backend runs two-tier OCR
+// (Google Cloud Vision → Tesseract fallback) and returns the medical-rules verdict.
+export const checkFoodByNutritionImage = async (userId, imageUri) => {
+  if (!userId) throw new Error('Missing user ID. Please sign in again.');
+  if (!imageUri) throw new Error('No image selected for nutrition scan.');
+
+  const formData = new FormData();
+  formData.append('user_id', String(userId));
+  formData.append('file', {
+    uri: imageUri,
+    type: _guessMimeType(imageUri),
+    name: 'nutrition.jpg',
+  });
+  const res = await axios.post(
+    `${API_BASE_URL}/api/analyze-nutrition-image`,
+    formData,
+    { timeout: 60000 }
   );
   return res.data;
 };
@@ -115,14 +167,14 @@ export const predictFoodFromPhoto = async (imageUri) => {
   const formData = new FormData();
   formData.append('file', {
     uri: imageUri,
-    type: 'image/jpeg',
+    type: _guessMimeType(imageUri),
     name: 'food.jpg',
   });
 
   const res = await axios.post(
     `${API_BASE_URL}/api/image-model/predict`,
     formData,
-    { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 30000 }
+    { timeout: 30000 }
   );
 
   return res.data;
@@ -190,10 +242,12 @@ export const getErrorMessage = (error) => {
   if (error.response) {
     const { status, data } = error.response;
     if (status === 404) return data?.detail || 'Not found.';
-    if (status === 422) return 'Invalid input. Please check your entries.';
+    if (status === 422) {
+      return _extractErrorDetail(data) || 'Invalid input. Please check your entries.';
+    }
     if (status === 400) return data?.detail || 'Bad request.';
     if (status === 503) return 'Server is starting up. Try again in a moment.';
-    return data?.detail || `Server error (${status})`;
+    return _extractErrorDetail(data) || `Server error (${status})`;
   }
   if (error.request) {
     return `Cannot reach server.\n\nCheck:\n• Docker is running\n• Phone & laptop on same WiFi\n• IP in api/index.js is ${API_BASE_URL}`;

@@ -176,10 +176,7 @@ export default function HomeScreen({ navigation, route }) {
             <TouchableOpacity
               key={mode.key}
               style={styles.modeBtn}
-              onPress={() => {
-                if (mode.screen === 'OCRScan') { Alert.alert('Coming Soon', 'OCR scan screen is not built yet.'); return; }
-                navigation.navigate(mode.screen, { userId, profile });
-              }}
+              onPress={() => navigation.navigate(mode.screen, { userId, profile })}
               activeOpacity={0.85}
             >
               <LinearGradient colors={mode.gradient} style={styles.modeBtnGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
